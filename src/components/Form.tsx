@@ -9,8 +9,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 }*/
 //az in
 const schema = z.object({
-  name: z.string().min(3),
-  age: z.number().min(18),
+  name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+  age: z
+    .number({ invalid_type_error: "age field is required." })
+    .min(18, { message: "Age must be at least 18." }),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -23,7 +25,7 @@ const Form = () => {
     register,
     handleSubmit,
     formState: { errors, isValid },
-  } = useForm<FormData>();
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
   const onSubmit = (data: FieldValues) => console.log(data);
   // console.log(register("name"));
 
@@ -51,18 +53,13 @@ const Form = () => {
           //    setPerson({ ...person, name: event.target.value })
           //  }
           //be jaye balaiha iz code zir estefade mikonim
-          {...register("name", { required: true, minLength: 3, maxLength: 30 })}
+          {...register("name")}
           // ref={nameRef}
           id="name"
           type="text"
           className="form-control"
         />
-        {errors.name?.type === "required" && (
-          <p className="text-danger">The name field is required.</p>
-        )}
-        {errors.name?.type === "minLength" && (
-          <p className="text-danger">The name must be at least 3 characters.</p>
-        )}
+        {errors.name && <p className="text-danger">{errors.name.message}</p>}
       </div>
       <div className="mb-3">
         <label htmlFor="age" className="form-label">
@@ -73,12 +70,13 @@ const Form = () => {
           //   setPerson({ ...person, age: parseInt(event.target.value) })
           // }
           //inja ham hamintor
-          {...register("age")}
+          {...register("age", { valueAsNumber: true })}
           //ref={ageRef}
           id="age"
           type="number"
           className="form-control"
         />
+        {errors.age && <p className="text-danger">{errors.age.message}</p>}
       </div>
       <button disabled={!isValid} type="submit" className="btn btn-primary">
         Submit
